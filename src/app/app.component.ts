@@ -1,15 +1,16 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AssignmentDataService } from './assignment-data.service';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { Organization, Project } from './Interfaces';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   note = 'Find projects by selecting organization';
   projectList: Project[] = [];
   organizationList: Organization[] = [];
@@ -19,8 +20,15 @@ export class AppComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<Project>();
   displayedColumns: string[] = ['id', 'organization_id', 'user_id', 'name', 'created_at']; // list of columns we need to display in the UI
   @ViewChild(MatPaginator) paginator: MatPaginator;
+  subscriptions: Subscription;
 
-  constructor(private dataService: AssignmentDataService) { } // dependencies are injected here
+  constructor(private dataService: AssignmentDataService) {  // dependencies are injected here
+    this.subscriptions = new Subscription();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
 
   ngOnInit(): void {
     this.getOrganizations();
@@ -33,17 +41,19 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   // loads all projects from csv using service (to get the data)
   private getProjects(): void {
-    this.dataService.getProjects().subscribe((data: any) => {
+    const projectSubs = this.dataService.getProjects().subscribe((data: any) => {
       this.projectList = this.helperMethodToProcessCSV(data) as Project[];
       this.dataSource.data = this.projectList;
     });
+    this.subscriptions.add(projectSubs);
   }
 
   // this method will initialize the project list, will load all the organizations.
   private getOrganizations(): void {
-    this.dataService.getOrganizations().subscribe((data: any) => {
+    const organizationSubs = this.dataService.getOrganizations().subscribe((data: any) => {
       this.organizationList = this.helperMethodToProcessCSV(data) as Organization[];
     });
+    this.subscriptions.add(organizationSubs);
   }
 
   // on organization selection filter out the projects and reset the paginator
@@ -63,7 +73,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       const row = csvToRowArray[index].split(',');
       const obj: any = {};
       header.forEach((head, headIndex) => {
-        const cleanHeader = head.replaceAll('"', ''); // clean extra characters
+        const cleanHeader = head.replaceAll('"', '').trim(); // clean extra characters
         obj[cleanHeader] = row[headIndex].replaceAll('"', '');
       });
       dataList.push(obj);
