@@ -1,0 +1,62 @@
+<div class="main-div">
+  <p>
+    {{note}}
+  </p>
+  <mat-form-field appearance="fill">
+    <mat-select name="organization" [(ngModel)]="selectedOrganization" (ngModelChange)="onOrganizationSelection()">
+      <mat-option *ngFor="let organization of organizationList" [value]="organization.organization_id">
+        {{ organization.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource">
+      <!-- ID -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+      </ng-container>
+
+      <!-- ORGANIZATION ID -->
+      <ng-container matColumnDef="organization_id">
+        <th mat-header-cell *matHeaderCellDef>ORGANIZATION ID</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.organization_id }}
+        </td>
+      </ng-container>
+
+      <!-- USER ID -->
+      <ng-container matColumnDef="user_id">
+        <th mat-header-cell *matHeaderCellDef>USER ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.user_id }}</td>
+      </ng-container>
+
+      <!-- PROJECT NAME -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>PROJECT NAME</th>
+        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+      </ng-container>
+
+      <!-- CREATED AT -->
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>CREATED AT</th>
+        <td mat-cell *matCellDef="let element">{{ element.created_at }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <table>
+      <tr *ngIf="!dataSource.data.length">
+        <td class="no-record-found" [attr.colspan]="displayedColumns.length">
+          No Project Found!
+        </td>
+      </tr>
+    </table>
+
+    <!-- used property binding here to bind the pageSizeOptions and pageSizeOptions[1] i.e., 10 is considered as default page size -->
+    <mat-paginator [pageSizeOptions]="pageSizeOptions" [pageSize]="pageSizeOptions[1]"></mat-paginator>
+  </div>
+</div>
